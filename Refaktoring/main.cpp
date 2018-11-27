@@ -52,7 +52,7 @@ public:     // ToDo: onTurn + on PassThrough
     virtual void onStep(Player &player){
 
     }
-    virtual void onPass()
+    virtual void onPass(Player &player)
     {
 
     }
@@ -81,8 +81,8 @@ public:
 };
 
 class StartField : public Field{
-    void onPass(){
-        
+    void onPass(Player &player){
+        player.reward(400);
     }
 };
 class DiceRoller
@@ -120,7 +120,9 @@ public:
         for(int i{0}; i<40; i++){
             _board.push_back(std::make_unique<Field>());
         }
+        _board[0] = std::make_unique<StartField>();
         _board[10] = std::make_unique<PunishField>();
+        _board[30] = std::make_unique<RewardField>();
     }
 
     void setBoard()
@@ -135,12 +137,11 @@ public:
     void movePlayer(Player &currentPlayer)
     {
         auto rollValue = roll();
-        auto pos = currentPlayer.getPosition() + rollValue;
-        currentPlayer.setPosition(pos%40);
-        if(pos > 40)
-        {
-            currentPlayer.reward(100);
+        auto newPos = currentPlayer.getPosition() + rollValue;
+        for(auto i{currentPlayer.getPosition() + 1}; i < newPos; i++){
+            _board[i%40]->onPass(currentPlayer);
         }
+        currentPlayer.setPosition(newPos%40);
         _board[currentPlayer.getPosition()]->onStep(currentPlayer);
     }
 
@@ -177,7 +178,6 @@ public:
             std::cout << "tura gracza \n";
             pl.printName();
             board.movePlayer(pl);
-            std::cout << "dupa\n";
         }
         std::cout << "Koniec rundy " << turns << "\n";
         turns++;
