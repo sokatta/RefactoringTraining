@@ -12,16 +12,13 @@ class Player
 {
     string _name;
     int _cash = 500;
+    int _position;
 
 public:
     Player(string id)
-        :_name(id) {
+        :_name(id), _position(0) {
         std::cout << "Gracz " << _name << "\n";
     }
-    //    int roll() const
-    //    {
-    //        return 6;
-    //    }
     void punish(int val)
     {
         _cash -= val;
@@ -30,10 +27,21 @@ public:
     {
         _cash += val;
     }
-    void call()
+    void printName()
     {
-        std::cout << _name;
+        std::cout << _name<<"\n";
     }
+
+    void setPosition(int val)
+    {
+        _position = val;
+    }
+
+    int getPosition()
+    {
+        return _position;
+    }
+
 
 };
 
@@ -72,7 +80,11 @@ public:
 
 };
 
-
+class StartField : public Field{
+    void onPass(){
+        
+    }
+};
 class DiceRoller
 {
     uint8_t _numOfDice;
@@ -97,39 +109,48 @@ public:
 
 
 
-//class Board  // ToDo: pętla przechodząca przez pola
-//{
-//    std::vector<unique_ptr<Field>> _board;
+class Board  // ToDo: pętla przechodząca przez pola
+{
+    std::vector<unique_ptr<Field>> _board;
 
-//public:
+public:
 
-//    Board():
-//        _board(40)
-//    {
+    Board()
+    {
+        for(int i{0}; i<40; i++){
+            _board.push_back(std::make_unique<Field>());
+        }
+        _board[10] = std::make_unique<PunishField>();
+    }
 
-//    }
+    void setBoard()
+    {
 
-//    void setBoard()
-//    {
-//        _board(40);
-//    }
+    }
+    int roll()
+    {
+        return 6;
+    }
 
-//    void actionOnField(int field)
-//    {
-//    }
-//    void movePlayer(Player& currentPlayer, uint8_t numOfFields )
-//    {
+    void movePlayer(Player &currentPlayer)
+    {
+        auto rollValue = roll();
+        auto pos = currentPlayer.getPosition() + rollValue;
+        currentPlayer.setPosition(pos%40);
+        if(pos > 40)
+        {
+            currentPlayer.reward(100);
+        }
+        _board[currentPlayer.getPosition()]->onStep(currentPlayer);
+    }
 
-//    }
-
-//};
+};
 
 class Game
 {
 
-    std::vector<std::unique_ptr<Field>> _board; //ToDo: do osobnej klasy
-    std::vector<std::pair<Player, int>> _players;
-
+    std::vector<Player> _players;
+    Board board;
     int turns = 0;
 
 public:
@@ -140,15 +161,7 @@ public:
     }
 
 
-    Game(std::vector<Player> players){
-        for(int i{0}; i<40; i++){
-            _board.push_back(std::make_unique<Field>());
-        }
-        _board[10] = std::make_unique<PunishField>();
-        for(auto &player : players)
-            _players.push_back({player, 0});
-
-    }
+    Game(std::vector<Player> players):_players(players){}
 
     bool finished()
     {
@@ -157,34 +170,14 @@ public:
         return true;
     }
 
-    Field current_field(int fild){
-        return *_board[fild];
-    }
-
-    int roll()
-    {
-        return 6;
-    }
     void playTurn()
     {
-        // każdy gracz rzuca kością
-        // aktualizacja pozycji
-        // wywołanie akji pola
         for(auto pl : _players)
         {
-            std::cout << "tura gracza ";
-            pl.first.call();
-            std::cout << "\n";
-
-            auto rollValue = roll();
-            int position = pl.second + rollValue;
-            pl.second = (pl.second + rollValue)%40;
-            if(position > 40)
-            {
-                pl.first.reward(100);
-            }
-            current_field(pl.second).onStep(pl.first);
-
+            std::cout << "tura gracza \n";
+            pl.printName();
+            board.movePlayer(pl);
+            std::cout << "dupa\n";
         }
         std::cout << "Koniec rundy " << turns << "\n";
         turns++;
@@ -199,16 +192,11 @@ int main()
     size_t numPlayers = 2;
     Player player_1("Jan");
     Player player_2("Anna");
-
-    Game game({player_1, player_2});
+    std::vector<Player> players{player_1, player_2};
+    Game game(players);
 
     game.start();
 
-//    while(!game.finished()) // ToDo: do impl. Game
-//    {
-//        game.turn();
-
-//    }
 }
 
 
