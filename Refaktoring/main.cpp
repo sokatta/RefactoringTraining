@@ -62,6 +62,14 @@ public:
         :_name(id), _position(0), _iterator(iterator) {
         std::cout << "Gracz " << _name << "\n";
     }
+    string name()
+    {
+        return _name;
+    }
+    bool buys()
+    {
+        return true;
+    }
 
     void punish(int val)
     {
@@ -137,12 +145,12 @@ class MansionField : public Field
     uint rent = 300;
 public:
         void onStep(Player &player){
-            if(!_owner)
+            if(!_owner && player.buys())
             {
                _owner =  std::make_shared<Player>(player);
                player.punish(cost);
             }
-            else
+            else if(_owner->name() != player.name())
             {
                 player.punish(rent);
                 _owner->reward(rent);
@@ -153,7 +161,6 @@ public:
             _owner = nullptr;
         }
 };
-
 
 
 class Board
@@ -220,7 +227,7 @@ public:
     {
     }
 
-    void removeBankrutePlayers(){
+    void removeBankruptPlayers(){
         _players.erase(std::remove_if(
                 _players.begin(),
                 _players.end(),
@@ -235,7 +242,7 @@ public:
             pl->printName();
             pl->moveAction();
         }
-        removeBankrutePlayers();
+        removeBankruptPlayers();
     }
 };
 
