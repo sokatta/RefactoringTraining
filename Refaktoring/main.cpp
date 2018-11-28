@@ -165,14 +165,19 @@ public:
 
     Game(std::vector<Player> players, size_t boardSie):_players(players),board(boardSie){}
 
-    bool lastPlayerLeft(){
+bool turnsBelowLimit()
+{
+    if(turns < 5)
+        return true;
+    return false;
+}
+
+    bool isEnoughPlayers(){
         return _players.size() > 1;
     }
     bool finished()
     {
-        if(turns < 5 and lastPlayerLeft())
-            return false;
-        return true;
+       return isEnoughPlayers() && turnsBelowLimit();
     }
 
     void removeBankrutePlayers(){
