@@ -7,6 +7,25 @@
 #include <algorithm>
 using namespace std;
 
+class Field;
+
+class FieldIterator
+{
+    uint index;
+    std::vector<unique_ptr<Field>>& _board;
+    public:
+    FieldIterator(    std::vector<unique_ptr<Field>>& board)
+    : _board(board), index(0){}
+
+    void next()
+    {
+        index = (index + 1)%_board.size();
+    }
+    Field& getField()
+    {
+        return *_board[index];
+    }
+};
 
 class Player
 {
@@ -145,8 +164,18 @@ public:
         auto newPos = currentPlayer.getPosition() + rollValue;
         boardAction(currentPlayer, newPos);
     }
-
 };
+
+// move()
+// {
+//     int dice = 5;
+//     for i < 5
+//     {
+//         FieldIt.next;
+//         *FieldIt.onPass(*this);
+//     }
+//     *FieldIt.OnStep(*this);
+// }
 
 class Game
 {
