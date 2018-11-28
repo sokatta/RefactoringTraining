@@ -5,16 +5,31 @@
 #include <memory>
 #include <string>
 #include <algorithm>
+#include "dice.hpp"
 using namespace std;
 
-class Field;
+
+class Player;
+class Field
+{
+
+public:
+    virtual void onStep(Player &player){
+
+    }
+    virtual void onPass(Player &player)
+    {
+
+    }
+
+};
 
 class FieldIterator
 {
     uint index;
     std::vector<unique_ptr<Field>>& _board;
     public:
-    FieldIterator(    std::vector<unique_ptr<Field>>& board)
+    FieldIterator(std::vector<unique_ptr<Field>>& board)
     : _board(board), index(0){}
 
     void next()
@@ -32,12 +47,22 @@ class Player
     string _name;
     int _cash = 500;
     int _position;
+    Dices dices;
+    FieldIterator _iterator;
+
+    void passFields(int newPos) {
+        for(auto i{0}; i < newPos; i++){
+            _iterator.next();
+            _iterator.getField().onPass(*this);
+        }
+    }
 
 public:
-    Player(string id)
-        :_name(id), _position(0) {
+    Player(string id, FieldIterator iterator)
+        :_name(id), _position(0), _iterator(iterator) {
         std::cout << "Gracz " << _name << "\n";
     }
+
     void punish(int val)
     {
         _cash -= val;
@@ -51,35 +76,17 @@ public:
         std::cout << _name<<"\n";
     }
 
-    void setPosition(int val)
-    {
-        _position = val;
-    }
-
-    int getPosition()
-    {
-        return _position;
-    }
     bool isBankrupt(){
         return _cash < 0;
     }
 
-
-};
-
-class Field
-{
-
-public:
-    virtual void onStep(Player &player){
-
-    }
-    virtual void onPass(Player &player)
-    {
-
+    void moveAction(){
+        passFields(dices.roll());
+        _iterator.getField().onStep(*this);
     }
 
 };
+
 
 class PunishField : public Field
 {
@@ -107,27 +114,7 @@ class StartField : public Field{
         player.reward(400);
     }
 };
-class Dices
-{
-    uint8_t _numOfDice;
-    uint8_t _numOfFaces;
 
-public:
-    Dices()
-        :_numOfDice(2),
-          _numOfFaces(6) {}
-
-    uint8_t roll()
-    {
-        int result = 0;
-
-        for(int i = 0; i < _numOfDice; i++)
-        {
-            result += std::rand()%_numOfFaces + 1;
-        }
-        return result;
-    }
-};
 
 
 class Board
@@ -150,32 +137,12 @@ public:
         _board[30] = std::make_unique<RewardField>();
     }
 
-    void boardAction(Player &currentPlayer, int newPos) const {
-        for(auto i{currentPlayer.getPosition() + 1}; i < newPos; i++){
-            _board[i % _boardSize]->onPass(currentPlayer);
-        }
-        currentPlayer.setPosition(newPos%_boardSize);
-        _board[currentPlayer.getPosition()]->onStep(currentPlayer);
-    }
-
-    void movePlayer(Player &currentPlayer)
+    FieldIterator getIterator()
     {
-        auto rollValue = dices.roll();
-        auto newPos = currentPlayer.getPosition() + rollValue;
-        boardAction(currentPlayer, newPos);
+        return FieldIterator(_board);
     }
-};
 
-// move()
-// {
-//     int dice = 5;
-//     for i < 5
-//     {
-//         FieldIt.next;
-//         *FieldIt.onPass(*this);
-//     }
-//     *FieldIt.OnStep(*this);
-// }
+};
 
 class Game
 {
@@ -208,13 +175,17 @@ public:
     }
 
 
-    Game(std::vector<Player> players, size_t boardSie):_players(players),board(boardSie){}
+    Game(size_t boardSie)
+        :board(boardSie),
+        _players({Player{"Jan", board.getIterator()}, Player{"Anna",  board.getIterator()}})
+    {
+    }
 
     void removeBankrutePlayers(){
-        _players.erase(std::remove_if(
-                _players.begin(),
-                _players.end(),
-              [](auto _pl){return  _pl.isBankrupt();}),_players.end());
+//        _players.erase(std::remove_if(
+//                _players.begin(),
+//                _players.end(),
+//              [](auto _pl){return  _pl.isBankrupt();}),_players.end());
     }
 
     void playTurn()
@@ -223,7 +194,7 @@ public:
         {
             std::cout << "tura gracza \n";
             pl.printName();
-            board.movePlayer(pl);
+            pl.moveAction();
         }
         removeBankrutePlayers();
     }
@@ -232,7 +203,7 @@ public:
 
 int main()
 {
-    Game game({Player{"Jan"}, Player{"Anna"}}, 40);
+    Game game(40);
     game.start();
 }
 
