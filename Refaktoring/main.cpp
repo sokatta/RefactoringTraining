@@ -185,7 +185,7 @@ public:
 
 class Game
 {
-    std::vector<Player> _players;
+    std::vector<std::shared_ptr<Player>> _players;
     Board board;
     int rounds = 0;
 
@@ -216,15 +216,15 @@ public:
 
     Game(size_t boardSie)
         :board(boardSie),
-        _players({Player{"Jan", board.getIterator()}, Player{"Anna",  board.getIterator()}})
+        _players({std::make_shared<Player>("Jan", board.getIterator()), std::make_shared<Player>("Anna",  board.getIterator())})
     {
     }
 
     void removeBankrutePlayers(){
-//        _players.erase(std::remove_if(
-//                _players.begin(),
-//                _players.end(),
-//              [](auto _pl){return  _pl.isBankrupt();}),_players.end());
+        _players.erase(std::remove_if(
+                _players.begin(),
+                _players.end(),
+              [](auto _pl){return  _pl->isBankrupt();}),_players.end());
     }
 
     void playTurn()
@@ -232,8 +232,8 @@ public:
         for(auto & pl : _players)
         {
             std::cout << "tura gracza \n";
-            pl.printName();
-            pl.moveAction();
+            pl->printName();
+            pl->moveAction();
         }
         removeBankrutePlayers();
     }
