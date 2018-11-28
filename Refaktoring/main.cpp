@@ -4,7 +4,7 @@
 #include <map>
 #include <memory>
 #include <string>
-
+#include <algorithm>
 using namespace std;
 
 
@@ -40,6 +40,9 @@ public:
     int getPosition()
     {
         return _position;
+    }
+    bool isBankrupt(){
+        return _cash < 0;
     }
 
 
@@ -162,11 +165,21 @@ public:
 
     Game(std::vector<Player> players, size_t boardSie):_players(players),board(boardSie){}
 
+    bool lastPlayerLeft(){
+        return _players.size() > 1;
+    }
     bool finished()
     {
-        if(turns < 5)
+        if(turns < 5 and lastPlayerLeft())
             return false;
         return true;
+    }
+
+    void removeBankrutePlayers(){
+        _players.erase(std::remove_if(
+                _players.begin(),
+                _players.end(),
+              [](auto _pl){return  _pl.isBankrupt();}),_players.end());
     }
 
     void playTurn()
@@ -177,6 +190,7 @@ public:
             pl.printName();
             board.movePlayer(pl);
         }
+        removeBankrutePlayers();
         std::cout << "Koniec rundy " << turns << "\n";
         turns++;
     }
