@@ -152,32 +152,34 @@ class Game
 {
     std::vector<Player> _players;
     Board board;
-    int turns = 0;
+    int rounds = 0;
 
 public:
     void start()
     {
         while(!finished())
+        {
             playTurn();
+            std::cout << "Koniec rundy " << rounds << "\n";
+            rounds++;
+        }
     }
-
-
-    Game(std::vector<Player> players, size_t boardSie):_players(players),board(boardSie){}
-
-    bool turnsBelowLimit()
-    {
-        if(turns < 5)
-            return true;
-        return false;
-    }
-
     bool isEnoughPlayers(){
         return _players.size() > 1;
     }
     bool finished()
     {
-       return !isEnoughPlayers() || !turnsBelowLimit();
+       return !isEnoughPlayers() || !roundsBelowLimit();
     }
+    bool roundsBelowLimit()
+    {
+        if(rounds < 5)
+            return true;
+        return false;
+    }
+
+
+    Game(std::vector<Player> players, size_t boardSie):_players(players),board(boardSie){}
 
     void removeBankrutePlayers(){
         _players.erase(std::remove_if(
@@ -195,8 +197,6 @@ public:
             board.movePlayer(pl);
         }
         removeBankrutePlayers();
-        std::cout << "Koniec rundy " << turns << "\n";
-        turns++;
     }
 };
 
