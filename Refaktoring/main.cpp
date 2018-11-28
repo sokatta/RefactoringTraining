@@ -132,14 +132,14 @@ public:
 
 class MansionField : public Field
 {
-    std::unique_ptr<Player> _owner = nullptr;
+    std::shared_ptr<Player> _owner = nullptr;
     uint cost = 500;
     uint rent = 300;
 public:
         void onStep(Player &player){
             if(!_owner)
             {
-               _owner =  std::make_unique<Player>(player);
+               _owner =  std::make_shared<Player>(player);
                player.punish(cost);
             }
             else
@@ -181,7 +181,6 @@ public:
     {
         return FieldIterator(_board);
     }
-
 };
 
 class Game
