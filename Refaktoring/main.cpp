@@ -150,7 +150,6 @@ public:
 
 class Game
 {
-
     std::vector<Player> _players;
     Board board;
     int turns = 0;
@@ -165,19 +164,19 @@ public:
 
     Game(std::vector<Player> players, size_t boardSie):_players(players),board(boardSie){}
 
-bool turnsBelowLimit()
-{
-    if(turns < 5)
-        return true;
-    return false;
-}
+    bool turnsBelowLimit()
+    {
+        if(turns < 5)
+            return true;
+        return false;
+    }
 
     bool isEnoughPlayers(){
         return _players.size() > 1;
     }
     bool finished()
     {
-       return isEnoughPlayers() && turnsBelowLimit();
+       return !isEnoughPlayers() || !turnsBelowLimit();
     }
 
     void removeBankrutePlayers(){
@@ -206,7 +205,6 @@ int main()
 {
     Game game({Player{"Jan"}, Player{"Anna"}}, 40);
     game.start();
-
 }
 
 
