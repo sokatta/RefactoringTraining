@@ -16,7 +16,7 @@ struct IVisitor
 {
     virtual void decreaseMoney(int val) = 0;
     virtual void increaseMoney(int val) = 0;
-    virtual bool wantsToBuy() = 0;
+    virtual bool wantsToBuy(int price) = 0;
     virtual std::string name() = 0;
 };
 
@@ -82,6 +82,7 @@ class Player : private IVisitor
     Dices dices;
     FieldIterator _iterator;
     std::vector<OwnershipAct*> _ownActs;
+    std::unique_ptr<DecisionMaker> buyer;
 
     void passFields(int newPos) {
         for(auto i{0}; i < newPos; i++){
@@ -95,17 +96,17 @@ public:
     {
         _ownActs.push_back(act);
     }
-    Player(string id, FieldIterator iterator)
-        :_name(id), _position(0), _iterator(iterator) {
+    Player(string id, FieldIterator iterator, std::unique_ptr<DecisionMaker> buyer)
+        :_name(id), _position(0), _iterator(iterator), buyer(std::move(buyer)) {
         std::cout << "Gracz " << _name << "\n";
     }
     std::string name() override
     {
         return _name;
     }
-    bool wantsToBuy() override
+    bool wantsToBuy(int price) override
     {
-        return true;
+        return buyer->buyMansion(_cash, price);
     }
 
     void decreaseMoney(int val) override
@@ -186,7 +187,7 @@ class MansionField : public Field, OwnershipAct
     uint rent = 300;
 public:
         void onStep(IVisitor &player){
-            if(!_owner && player.wantsToBuy())
+            if(!_owner && player.wantsToBuy(cost))
             {
                *_owner =  player;
                 player.decreaseMoney(cost);
@@ -268,7 +269,8 @@ public:
 
     Game(size_t boardSie)
         :board(boardSie),
-        _players({std::make_shared<Player>("Jan", board.getIterator()), std::make_shared<Player>("Anna",  board.getIterator())})
+        _players({std::make_shared<Player>("Jan", board.getIterator(), std::make_unique<GreedyBuy>()),
+                    std::make_shared<Player>("Anna",  board.getIterator(), std::make_unique<RandomBuy>())})
     {
     }
 
