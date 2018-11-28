@@ -48,6 +48,29 @@ class FieldIterator
     }
 };
 
+struct DecisionMaker
+{
+    virtual bool buyMansion(int, int) = 0;
+};
+
+struct GreedyBuy : DecisionMaker
+{
+    bool buyMansion(int cash, int price)
+    {
+        if (cash < price)
+            return false;
+        return true;
+    }
+};
+struct RandomBuy : DecisionMaker
+{
+    bool buyMansion(int cash, int price)
+    {
+        if(cash < price)
+            return false;
+        return std::rand()%2;
+    }
+};
 
 
 
@@ -106,7 +129,6 @@ public:
         passFields(dices.roll());
         _iterator.getField().onStep(*this);
     }
-
 };
 
 
