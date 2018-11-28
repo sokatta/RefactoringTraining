@@ -12,19 +12,23 @@ struct OwnershipAct;
 class Player;
 
 class Player;
+struct IVisitor
+{
+    virtual void decreaseMoney(int val) = 0;
+    virtual void increaseMoney(int val) = 0;
+    virtual bool wantsToBuy() = 0;
+    virtual std::string name() = 0;
+};
+
 class Field
 {
 
 public:
-    virtual void onStep(Player &player){
-
-    }
-    virtual void onPass(Player &player)
-    {
-
-    }
+    virtual void onStep(IVisitor &player){}
+    virtual void onPass(IVisitor &player){}
 
 };
+
 
 class FieldIterator
 {
@@ -44,17 +48,10 @@ class FieldIterator
     }
 };
 
-struct IVisitor
-{
-    virtual void punish(int val) = 0;
-    virtual void reward(int val) = 0;
-    virtual bool wantsToBuy() = 0;
-    virtual string printName() = 0;
-};
 
 
 
-class Player
+class Player : private IVisitor
 {
     string _name;
     int _cash = 500;
@@ -79,20 +76,20 @@ public:
         :_name(id), _position(0), _iterator(iterator) {
         std::cout << "Gracz " << _name << "\n";
     }
-    string name()
+    std::string name() override
     {
         return _name;
     }
-    bool wantsToBuy()
+    bool wantsToBuy() override
     {
         return true;
     }
 
-    void punish(int val)
+    void decreaseMoney(int val) override
     {
         _cash -= val;
     }
-    void reward(int val)
+    void increaseMoney(int val) override
     {
         _cash += val;
     }
@@ -117,8 +114,8 @@ class PunishField : public Field
 {
 
 public:
-    void onStep(Player &player){
-        player.punish(100);
+    void onStep(IVisitor &player){
+        player.decreaseMoney(100);
     }
 
 };
@@ -127,8 +124,8 @@ class RewardField : public Field
 {
 
 public:
-    void onStep(Player &player){
-        player.reward(100);
+    void onStep(IVisitor &player){
+        player.increaseMoney(100);
 
     }
 
@@ -136,8 +133,8 @@ public:
 
 class StartField : public Field{
 public:
-    void onPass(Player &player){
-        player.reward(400);
+    void onPass(IVisitor &player){
+        player.increaseMoney(400);
     }
 };
 
@@ -146,11 +143,11 @@ class DepositField : public Field
     uint _cash = 0;
     uint _amount = 100;
 public:
-        void onStep(Player &player){
-        player.reward(_cash);
+        void onStep(IVisitor &player){
+            player.increaseMoney(_cash);
     }
-        void onPass(Player &player){
-        player.punish(_amount);
+        void onPass(IVisitor &player){
+            player.decreaseMoney(_amount);
         _cash += _amount;
     }
 };
@@ -162,20 +159,20 @@ struct OwnershipAct
 
 class MansionField : public Field, OwnershipAct
 {
-    std::shared_ptr<Player> _owner = nullptr;
+    IVisitor* _owner = nullptr;
     uint cost = 500;
     uint rent = 300;
 public:
-        void onStep(Player &player){
+        void onStep(IVisitor &player){
             if(!_owner && player.wantsToBuy())
             {
-               _owner =  std::make_shared<Player>(player);
-               player.punish(cost);
+               *_owner =  player;
+                player.decreaseMoney(cost);
             }
             else if(_owner->name() != player.name())
             {
-                player.punish(rent);
-                _owner->reward(rent);
+                player.decreaseMoney(rent);
+                _owner->increaseMoney(rent);
             }
         }
         void releaseOwnership() override
@@ -204,6 +201,7 @@ public:
         _board[10] = std::make_unique<PunishField>();
         _board[15] = std::make_unique<DepositField>();
         _board[30] = std::make_unique<RewardField>();
+        _board[35] = std::make_unique<MansionField>();
     }
 
     FieldIterator getIterator()
