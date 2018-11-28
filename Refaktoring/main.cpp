@@ -48,7 +48,7 @@ public:
 class Field
 {
 
-public:     // ToDo: onTurn + on PassThrough
+public:
     virtual void onStep(Player &player){
 
     }
@@ -85,17 +85,17 @@ class StartField : public Field{
         player.reward(400);
     }
 };
-class DiceRoller
+class Dices
 {
     uint8_t _numOfDice;
     uint8_t _numOfFaces;
 
 public:
-    DiceRoller()
+    Dices()
         :_numOfDice(2),
           _numOfFaces(6) {}
 
-    uint8_t rollDice()
+    uint8_t roll()
     {
         int result = 0;
 
@@ -108,16 +108,19 @@ public:
 };
 
 
-
-class Board  // ToDo: pętla przechodząca przez pola
+class Board
 {
     std::vector<unique_ptr<Field>> _board;
+    Dices dices;
+    size_t _boardSize;
 
 public:
 
-    Board()
+    Board(size_t boardSize) : _boardSize(boardSize)
     {
-        for(int i{0}; i<40; i++){
+        _board.reserve(boardSize);
+
+        for(int i{0}; i<_boardSize; i++){
             _board.push_back(std::make_unique<Field>());
         }
         _board[0] = std::make_unique<StartField>();
@@ -125,24 +128,19 @@ public:
         _board[30] = std::make_unique<RewardField>();
     }
 
-    void setBoard()
-    {
-
-    }
-    int roll()
-    {
-        return 6;
+    void boardAction(Player &currentPlayer, int newPos) const {
+        for(auto i{currentPlayer.getPosition() + 1}; i < newPos; i++){
+            _board[i % _boardSize]->onPass(currentPlayer);
+        }
+        currentPlayer.setPosition(newPos%_boardSize);
+        _board[currentPlayer.getPosition()]->onStep(currentPlayer);
     }
 
     void movePlayer(Player &currentPlayer)
     {
-        auto rollValue = roll();
+        auto rollValue = dices.roll();
         auto newPos = currentPlayer.getPosition() + rollValue;
-        for(auto i{currentPlayer.getPosition() + 1}; i < newPos; i++){
-            _board[i%40]->onPass(currentPlayer);
-        }
-        currentPlayer.setPosition(newPos%40);
-        _board[currentPlayer.getPosition()]->onStep(currentPlayer);
+        boardAction(currentPlayer, newPos);
     }
 
 };
@@ -162,7 +160,7 @@ public:
     }
 
 
-    Game(std::vector<Player> players):_players(players){}
+    Game(std::vector<Player> players, size_t boardSie):_players(players),board(boardSie){}
 
     bool finished()
     {
@@ -173,7 +171,7 @@ public:
 
     void playTurn()
     {
-        for(auto pl : _players)
+        for(auto & pl : _players)
         {
             std::cout << "tura gracza \n";
             pl.printName();
@@ -187,14 +185,7 @@ public:
 
 int main()
 {
-    cout << "Hello World!" << endl;
-
-    size_t numPlayers = 2;
-    Player player_1("Jan");
-    Player player_2("Anna");
-    std::vector<Player> players{player_1, player_2};
-    Game game(players);
-
+    Game game({Player{"Jan"}, Player{"Anna"}}, 40);
     game.start();
 
 }
