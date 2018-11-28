@@ -192,7 +192,7 @@ class Game
 public:
     void start()
     {
-        while(!finished())
+        while(notFinished())
         {
             playTurn();
             std::cout << "Koniec rundy " << rounds << "\n";
@@ -202,9 +202,9 @@ public:
     bool isEnoughPlayers(){
         return _players.size() > 1;
     }
-    bool finished()
+    bool notFinished()
     {
-       return !isEnoughPlayers() || !roundsBelowLimit();
+       return isEnoughPlayers() && roundsBelowLimit();
     }
     bool roundsBelowLimit()
     {
