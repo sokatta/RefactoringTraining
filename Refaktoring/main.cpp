@@ -8,6 +8,8 @@
 #include "dice.hpp"
 using namespace std;
 
+struct OwnershipAct;
+class Player;
 
 class Player;
 class Field
@@ -42,6 +44,16 @@ class FieldIterator
     }
 };
 
+struct IVisitor
+{
+    virtual void punish(int val) = 0;
+    virtual void reward(int val) = 0;
+    virtual bool wantsToBuy() = 0;
+    virtual string printName() = 0;
+};
+
+
+
 class Player
 {
     string _name;
@@ -58,6 +70,10 @@ class Player
     }
 
 public:
+    void assignAct(OwnershipAct* act)
+    {
+        _ownActs.push_back(act);
+    }
     Player(string id, FieldIterator iterator)
         :_name(id), _position(0), _iterator(iterator) {
         std::cout << "Gracz " << _name << "\n";
@@ -66,7 +82,7 @@ public:
     {
         return _name;
     }
-    bool buys()
+    bool wantsToBuy()
     {
         return true;
     }
@@ -138,28 +154,38 @@ public:
     }
 };
 
-class MansionField : public Field
+struct OwnershipAct
+{
+    virtual void removeOwner()  = 0;
+};
+
+class MansionField : public Field, OwnershipAct
 {
     std::shared_ptr<Player> _owner = nullptr;
     uint cost = 500;
     uint rent = 300;
 public:
-    void onStep(Player &player){
-        if(!_owner && player.buys())
-        {
-           _owner =  std::make_shared<Player>(player);
-           player.punish(cost);
+        void onStep(Player &player){
+            if(!_owner && player.buys())
+            {
+               _owner =  std::make_shared<Player>(player);
+               player.punish(cost);
+            }
+            else if(_owner->name() != player.name())
+            {
+                player.punish(rent);
+                _owner->reward(rent);
+            }
         }
         else if(_owner->name() != player.name())
         {
             player.punish(rent);
             _owner->reward(rent);
         }
-    }
-    void removeOwner()
-    {
-        _owner = nullptr;
-    }
+        void removeOwner() override
+        {
+            _owner = nullptr;
+        }
 };
 
 
@@ -196,16 +222,7 @@ class Game
     Board board;
     int rounds = 0;
 
-public:
-    void start()
-    {
-        while(notFinished())
-        {
-            playTurn();
-            std::cout << "Koniec rundy " << rounds << "\n";
-            rounds++;
-        }
-    }
+
     bool isEnoughPlayers(){
         return _players.size() > 1;
     }
@@ -219,6 +236,18 @@ public:
             return true;
         return false;
     }
+
+public:
+    void start()
+    {
+        while(notFinished())
+        {
+            playTurn();
+            std::cout << "Koniec rundy " << rounds << "\n";
+            rounds++;
+        }
+    }
+
 
 
     Game(size_t boardSie)
