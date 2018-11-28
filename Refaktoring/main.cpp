@@ -110,8 +110,23 @@ public:
 };
 
 class StartField : public Field{
+public:
     void onPass(Player &player){
         player.reward(400);
+    }
+};
+
+class DepositField : public Field
+{
+    uint _cash = 0;
+    uint _amount = 100;
+public:
+        void onStep(Player &player){
+        player.reward(_cash);
+    }
+        void onPass(Player &player){
+        player.punish(_amount);
+        _cash += _amount;
     }
 };
 
@@ -134,6 +149,7 @@ public:
         }
         _board[0] = std::make_unique<StartField>();
         _board[10] = std::make_unique<PunishField>();
+        _board[15] = std::make_unique<DepositField>();
         _board[30] = std::make_unique<RewardField>();
     }
 
@@ -199,6 +215,7 @@ public:
         removeBankrutePlayers();
     }
 };
+
 
 
 int main()
