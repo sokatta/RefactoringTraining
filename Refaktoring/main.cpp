@@ -72,6 +72,19 @@ struct RandomBuy : DecisionMaker
     }
 };
 
+struct HumanBuy : DecisionMaker
+{
+    bool buyMansion(int cash, int price)
+    {
+        string decision;
+        std::cout << "Masz " << cash << "gotowki, czy chcesz kupic posiadlosc za " << price << "? t/n";
+        std::cin >> decision;
+        if(decision == "t") 
+            return true;
+        return false;       
+    }
+};
+
 
 
 class Player : private IVisitor
@@ -270,7 +283,8 @@ public:
     Game(size_t boardSie)
         :board(boardSie),
         _players({std::make_shared<Player>("Jan", board.getIterator(), std::make_unique<GreedyBuy>()),
-                    std::make_shared<Player>("Anna",  board.getIterator(), std::make_unique<RandomBuy>())})
+                  std::make_shared<Player>("Anna",  board.getIterator(), std::make_unique<RandomBuy>()),
+                  std::make_shared<Player>("Ty",  board.getIterator(), std::make_unique<HumanBuy>())})
     {
     }
 
