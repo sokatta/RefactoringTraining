@@ -61,6 +61,7 @@ class Player
     int _position;
     Dices dices;
     FieldIterator _iterator;
+    std::vector<OwnershipAct*> _ownActs;
 
     void passFields(int newPos) {
         for(auto i{0}; i < newPos; i++){
@@ -166,7 +167,7 @@ class MansionField : public Field, OwnershipAct
     uint rent = 300;
 public:
         void onStep(Player &player){
-            if(!_owner && player.buys())
+            if(!_owner && player.wantsToBuy())
             {
                _owner =  std::make_shared<Player>(player);
                player.punish(cost);
@@ -176,11 +177,6 @@ public:
                 player.punish(rent);
                 _owner->reward(rent);
             }
-        }
-        else if(_owner->name() != player.name())
-        {
-            player.punish(rent);
-            _owner->reward(rent);
         }
         void removeOwner() override
         {
