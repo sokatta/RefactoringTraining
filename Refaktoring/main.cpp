@@ -157,7 +157,7 @@ public:
 
 struct OwnershipAct
 {
-    virtual void removeOwner()  = 0;
+    virtual void releaseOwnership()  = 0;
 };
 
 class MansionField : public Field, OwnershipAct
@@ -178,7 +178,7 @@ public:
                 _owner->reward(rent);
             }
         }
-        void removeOwner() override
+        void releaseOwnership() override
         {
             _owner = nullptr;
         }
