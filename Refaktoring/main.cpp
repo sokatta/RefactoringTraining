@@ -144,22 +144,22 @@ class MansionField : public Field
     uint cost = 500;
     uint rent = 300;
 public:
-        void onStep(Player &player){
-            if(!_owner && player.buys())
-            {
-               _owner =  std::make_shared<Player>(player);
-               player.punish(cost);
-            }
-            else if(_owner->name() != player.name())
-            {
-                player.punish(rent);
-                _owner->reward(rent);
-            }
-        }
-        void removeOwner()
+    void onStep(Player &player){
+        if(!_owner && player.buys())
         {
-            _owner = nullptr;
+           _owner =  std::make_shared<Player>(player);
+           player.punish(cost);
         }
+        else if(_owner->name() != player.name())
+        {
+            player.punish(rent);
+            _owner->reward(rent);
+        }
+    }
+    void removeOwner()
+    {
+        _owner = nullptr;
+    }
 };
 
 
