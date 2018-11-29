@@ -6,17 +6,21 @@
 #include <string>
 #include <algorithm>
 #include "dice.hpp"
+#include "namedType.hpp"
+
 using namespace std;
 
 struct OwnershipAct;
 class Player;
 
-class Player;
+using Price = NamedType<int, struct PriceParameter>;
+using Cash = NamedType<int, struct CashParameter>;
 struct IVisitor
 {
     virtual void decreaseMoney(int val) = 0;
     virtual void increaseMoney(int val) = 0;
-    virtual bool wantsToBuy(int price) = 0;
+    virtual bool wantsToBuy(Price price) = 0;
+    virtual void assignAct(OwnershipAct* act) = 0;
     virtual std::string name() = 0;
 };
 
@@ -50,23 +54,23 @@ class FieldIterator
 
 struct DecisionMaker
 {
-    virtual bool buyMansion(int, int) = 0;
+    virtual bool buyMansion(Cash cash, Price price) = 0;
 };
 
 struct GreedyBuy : DecisionMaker
 {
-    bool buyMansion(int cash, int price)
+    bool buyMansion(Cash cash, Price price)
     {
-        if (cash < price)
+        if (cash.get() < price.get())
             return false;
         return true;
     }
 };
 struct RandomBuy : DecisionMaker
 {
-    bool buyMansion(int cash, int price)
+    bool buyMansion(Cash cash, Price price)
     {
-        if(cash < price)
+        if(cash.get() < price.get())
             return false;
         return std::rand()%2;
     }
@@ -74,10 +78,10 @@ struct RandomBuy : DecisionMaker
 
 struct HumanBuy : DecisionMaker
 {
-    bool buyMansion(int cash, int price)
+    bool buyMansion(Cash cash, Price price)
     {
         string decision;
-        std::cout << "Masz " << cash << "gotowki, czy chcesz kupic posiadlosc za " << price << "? t/n";
+        std::cout << "Masz " << cash.get() << "gotowki, czy chcesz kupic posiadlosc za " << price.get() << "? t/n";
         std::cin >> decision;
         if(decision == "t") 
             return true;
@@ -90,8 +94,7 @@ struct HumanBuy : DecisionMaker
 class Player : private IVisitor
 {
     string _name;
-    int _cash = 500;
-    int _position;
+    Cash _cash{500};
     Dices dices;
     FieldIterator _iterator;
     std::vector<OwnershipAct*> _ownActs;
@@ -105,30 +108,30 @@ class Player : private IVisitor
     }
 
 public:
-    void assignAct(OwnershipAct* act)
+    void assignAct(OwnershipAct* act) override
     {
         _ownActs.push_back(act);
     }
     Player(string id, FieldIterator iterator, std::unique_ptr<DecisionMaker> buyer)
-        :_name(id), _position(0), _iterator(iterator), buyer(std::move(buyer)) {
+        :_name(id), _iterator(iterator), buyer(std::move(buyer)) {
         std::cout << "Gracz " << _name << "\n";
     }
     std::string name() override
     {
         return _name;
     }
-    bool wantsToBuy(int price) override
+    bool wantsToBuy(Price price) override
     {
         return buyer->buyMansion(_cash, price);
     }
 
     void decreaseMoney(int val) override
     {
-        _cash -= val;
+        _cash.get() -= val;
     }
     void increaseMoney(int val) override
     {
-        _cash += val;
+        _cash.get() += val;
     }
     void printName()
     {
@@ -136,7 +139,7 @@ public:
     }
 
     bool isBankrupt(){
-        return _cash < 0;
+        return _cash.get() < 0;
     }
 
     void moveAction(){
@@ -196,14 +199,15 @@ struct OwnershipAct
 class MansionField : public Field, OwnershipAct
 {
     IVisitor* _owner = nullptr;
-    uint cost = 500;
+    Price price{500};
     uint rent = 300;
 public:
         void onStep(IVisitor &player){
-            if(!_owner && player.wantsToBuy(cost))
+            if(!_owner && player.wantsToBuy(price))
             {
                *_owner =  player;
-                player.decreaseMoney(cost);
+                player.decreaseMoney(price.get());
+                player.assignAct(this);
             }
             else if(_owner->name() != player.name())
             {
