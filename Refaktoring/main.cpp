@@ -10,7 +10,12 @@
 
 using namespace std;
 
-struct OwnershipAct;
+struct OwnershipAct
+{
+    virtual void releaseOwnership()  = 0;
+    virtual ~OwnershipAct() = default;
+};
+
 class Player;
 
 using Price = NamedType<int, struct PriceParameter>;
@@ -22,6 +27,7 @@ struct IVisitor
     virtual bool wantsToBuy(Price price) = 0;
     virtual void assignAct(OwnershipAct* act) = 0;
     virtual std::string name() = 0;
+    virtual ~IVisitor() = default;
 };
 
 class Field
@@ -30,6 +36,7 @@ class Field
 public:
     virtual void onStep(IVisitor &player){}
     virtual void onPass(IVisitor &player){}
+    virtual ~Field() = default;
 
 };
 
@@ -106,6 +113,11 @@ class Player : private IVisitor
             _iterator.getField().onPass(*this);
         }
     }
+    void releaseMansions(){
+        for(auto acts : _ownActs){
+            acts->releaseOwnership();
+        }
+    }
 
 public:
     void assignAct(OwnershipAct* act) override
@@ -115,6 +127,9 @@ public:
     Player(string id, FieldIterator iterator, std::unique_ptr<DecisionMaker> buyer)
         :_name(id), _iterator(iterator), buyer(std::move(buyer)) {
         std::cout << "Gracz " << _name << "\n";
+    }
+    ~Player(){
+        releaseMansions();
     }
     std::string name() override
     {
@@ -191,10 +206,6 @@ public:
     }
 };
 
-struct OwnershipAct
-{
-    virtual void releaseOwnership()  = 0;
-};
 
 class MansionField : public Field, OwnershipAct
 {
