@@ -22,7 +22,6 @@ public:
     {
         for(auto el : fields)
             fieldPool.push_back(std::make_unique<Field>(el));
-       // fieldPool.insert(fieldPool.end(), fields.begin(), fields.end());
         _poolSize = fieldPool.size();
     }
     RandomField() : _poolSize(1)
