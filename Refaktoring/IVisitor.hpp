@@ -10,5 +10,6 @@ struct IVisitor
     virtual bool wantsToBuy(Price price) = 0;
     virtual void assignAct(OwnershipAct* act) = 0;
     virtual std::string name() = 0;
+    virtual void sendPlayerToPrison() = 0;
     virtual ~IVisitor() = default;
 };

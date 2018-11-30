@@ -94,6 +94,12 @@ public:
     }
 };
 
+class PrisonField : public Field{
+public:
+    virtual void onStep(IVisitor &player) {
+        player.sendPlayerToPrison();
+    }
+};
 class FieldIterator
 {
     uint index;

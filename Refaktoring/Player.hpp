@@ -16,6 +16,7 @@ class Player : private IVisitor
     FieldIterator _iterator;
     std::vector<OwnershipAct*> _ownActs;
     std::unique_ptr<IBrainStrategy> buyer;
+    uint roundsToWaitInJail{0};
 
     void passFields(int newPos) {
         for(auto i{0}; i < newPos; i++){
@@ -29,7 +30,14 @@ class Player : private IVisitor
         }
     }
 
+    bool notInPrison(){
+        return roundsToWaitInJail == 0 ? true:false;
+    }
+
 public:
+    void sendPlayerToPrison() override{
+        roundsToWaitInJail = 3;
+    }
     void assignAct(OwnershipAct* act) override
     {
         _ownActs.push_back(act);
@@ -68,8 +76,13 @@ public:
     }
 
     void moveAction(){
-        passFields(dices.roll());
-        _iterator.getField().onStep(*this);
+        if(notInPrison()){
+            passFields(dices.roll());
+            _iterator.getField().onStep(*this);
+        }
+        else{
+            roundsToWaitInJail--;
+        }
     }
 };
 
