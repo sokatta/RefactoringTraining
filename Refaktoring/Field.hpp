@@ -1,11 +1,11 @@
 #pragma once
 class IVisitor;
-class IField
+class Field
 {
 
 public:
     virtual void onStep(IVisitor &player){}
     virtual void onPass(IVisitor &player){}
-    virtual ~IField() = default;
+    virtual ~Field() = default;
 
 };

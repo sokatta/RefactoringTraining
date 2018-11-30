@@ -1,5 +1,5 @@
 #pragma once
-#include "IField.hpp"
+#include "Field.hpp"
 #include "IVisitor.hpp"
 #include "IownershipAct.hpp"
 #include <memory>
@@ -7,7 +7,7 @@
 
 struct IVisitor;
 
-class PunishField : public IField
+class PunishField : public Field
 {
 
 public:
@@ -17,7 +17,7 @@ public:
 
 };
 
-class RewardField : public IField
+class RewardField : public Field
 {
 
 public:
@@ -28,14 +28,14 @@ public:
 
 };
 
-class StartField : public IField{
+class StartField : public Field{
 public:
     void onPass(IVisitor &player){
         player.increaseMoney(Cash{400});
     }
 };
 
-class DepositField : public IField
+class DepositField : public Field
 {
     Cash storedCash{0};
     const Cash amount{100};
@@ -50,7 +50,7 @@ public:
     }
 };
 
-class MansionField : public IField, private OwnershipAct
+class MansionField : public Field, private OwnershipAct
 {
     IVisitor* _owner = nullptr;
     Price price{Cash{500}};
@@ -98,16 +98,16 @@ public:
 class FieldIterator
 {
     uint index;
-    std::vector<std::unique_ptr<IField>>& _board;
+    std::vector<std::unique_ptr<Field>>& _board;
 public:
-    FieldIterator(std::vector<std::unique_ptr<IField>>& board)
+    FieldIterator(std::vector<std::unique_ptr<Field>>& board)
     : _board(board), index(0){}
 
     void next()
     {
         index = (index + 1)%_board.size();
     }
-    IField& getField()
+    Field& getField()
     {
         return *_board[index];
     }
