@@ -27,3 +27,12 @@ public:
 private:
     T value_;
 };
+
+using Cash = NamedType<int, struct CashParameter>;
+using Price = NamedType<Cash, struct PriceParameter>;
+
+bool operator <= (const Cash cash, const Price price){
+    if(cash.get() <= price.get().get())
+        return true;
+    return false;
+}
