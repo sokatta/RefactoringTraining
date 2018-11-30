@@ -6,6 +6,42 @@
 #include <vector>
 struct IVisitor;
 
+
+
+class RandomField : public Field
+{
+    std::vector<std::unique_ptr<Field>> fieldPool;
+    int _poolSize;
+    int generateRandomIndex() 
+    {
+        return std::rand()%_poolSize;
+
+    }
+
+public:
+    RandomField(std::vector<std::unique_ptr<Field>> fieldPool):fieldPool(std::move(fieldPool)) 
+    {
+        _poolSize = fieldPool.size();
+    }
+    RandomField() : _poolSize(3)
+    {
+        for(auto i = 0; i < _poolSize; i++)
+            fieldPool.push_back(std::make_unique<Field>());
+    }
+    void onStep(IVisitor &player) override
+    {
+        int fieldIndex = generateRandomIndex();
+        fieldPool[fieldIndex]->onStep(player);
+    }
+    void onPass(IVisitor &player) override
+    {
+        int fieldIndex = generateRandomIndex();
+        fieldPool[fieldIndex]->onPass(player);
+    }
+};
+
+
+
 class PunishField : public Field
 {
 
