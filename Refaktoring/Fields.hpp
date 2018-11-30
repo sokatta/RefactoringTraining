@@ -56,12 +56,13 @@ class MansionField : public IField, private OwnershipAct
     Price price{Cash{500}};
     uint rent = 300;
 
-    bool fieldAvailableToBuy(){ return _owner; }
-    bool visitingPlayerIsOwner(IVisitor &player) {
-        if(!_owner)
-            return _owner;
+    bool fieldAvailableToBuy(){ return _owner == nullptr; }
+    bool visitingPlayerIsOwner(IVisitor &player)
+    {
+        if(fieldAvailableToBuy())
+            return false;
         return _owner->name() == player.name();
-        }
+    }
 
     void getRentFrom(IVisitor &player)
     {
