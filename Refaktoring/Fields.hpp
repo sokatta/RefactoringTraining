@@ -10,33 +10,33 @@ struct IVisitor;
 
 class RandomField : public Field
 {
-    std::vector<std::unique_ptr<Field>> fieldPool;
+    std::vector<Field> fieldPool;
     int _poolSize;
     int generateRandomIndex() 
     {
         return std::rand()%_poolSize;
-
     }
 
 public:
-    RandomField(std::vector<std::unique_ptr<Field>> fieldPool):fieldPool(std::move(fieldPool)) 
+    RandomField(std::initializer_list<Field> fields)
     {
+        fieldPool.insert(fieldPool.end(), fields.begin(), fields.end());
         _poolSize = fieldPool.size();
     }
-    RandomField() : _poolSize(3)
+    RandomField() : _poolSize(1)
     {
         for(auto i = 0; i < _poolSize; i++)
-            fieldPool.push_back(std::make_unique<Field>());
+            fieldPool.push_back(Field());
     }
     void onStep(IVisitor &player) override
     {
         int fieldIndex = generateRandomIndex();
-        fieldPool[fieldIndex]->onStep(player);
+        fieldPool[fieldIndex].onStep(player);
     }
     void onPass(IVisitor &player) override
     {
         int fieldIndex = generateRandomIndex();
-        fieldPool[fieldIndex]->onPass(player);
+        fieldPool[fieldIndex].onPass(player);
     }
 };
 
