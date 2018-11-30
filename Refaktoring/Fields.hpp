@@ -132,9 +132,30 @@ public:
 
 class PrisonField : public Field{
 public:
-    virtual void onStep(IVisitor &player) {
+    void onStep(IVisitor &player) override{
         player.sendPlayerToPrison();
     }
+};
+
+class BlackHoleField : public Field{
+public:
+    BlackHoleField(std::unique_ptr<Field> underField): underField(std::move(underField)) {}
+    void onStep(IVisitor &player) override{
+        isActive = flipBehaviur();
+        if(isActive)
+            underField->onStep(player);
+    }
+    void onPass(IVisitor &player) override{
+        isActive = flipBehaviur();
+        if(isActive)
+            underField->onPass(player);
+    }
+private:
+    bool flipBehaviur(){
+        return isActive ? false:true;
+    }
+    std::unique_ptr<Field> underField;
+    bool isActive{false};
 };
 class FieldIterator
 {

@@ -19,6 +19,7 @@ public:
         _board[10] = std::make_unique<PunishField>();
         _board[15] = std::make_unique<DepositField>();
         _board[20] = std::make_unique<PrisonField>();
+        _board[25] = std::make_unique<BlackHoleField>(std::make_unique<PrisonField>());
         _board[30] = std::make_unique<RewardField>();
         _board[35] = std::make_unique<MansionField>();        
     }
