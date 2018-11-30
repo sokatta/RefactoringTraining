@@ -13,16 +13,8 @@ using namespace std;
 using Cash = NamedType<int, struct CashParameter>;
 using Price = NamedType<Cash, struct PriceParameter>;
 
-std::ostream &operator<<(std::ostream& os, const Cash cash){
-    return os<<cash.get();
-}
-
-std::ostream &operator<<(std::ostream& os, const Price cash){
-    return os<<cash.get().get();
-}
-
 bool operator <= (const Cash cash, const Price price){
-    if(cash.get() < price.get().get())
+    if(cash.get() <= price.get().get())
         return true;
     return false;
 }
@@ -37,7 +29,7 @@ class Player;
 struct IVisitor
 {
     virtual void decreaseMoney(Cash val) = 0;
-    virtual void increaseMoney(int val) = 0;
+    virtual void increaseMoney(Cash val) = 0;
     virtual bool wantsToBuy(Price price) = 0;
     virtual void assignAct(OwnershipAct* act) = 0;
     virtual std::string name() = 0;
@@ -156,11 +148,11 @@ public:
 
     void decreaseMoney(Cash val) override
     {
-        _cash.get() -= val.get();
+        _cash -= val;
     }
-    void increaseMoney(int val) override
+    void increaseMoney(Cash val) override
     {
-        _cash.get() += val;
+        _cash += val;
     }
     void printName()
     {
@@ -193,7 +185,7 @@ class RewardField : public Field
 
 public:
     void onStep(IVisitor &player){
-        player.increaseMoney(100);
+        player.increaseMoney(Cash{100});
 
     }
 
@@ -202,21 +194,22 @@ public:
 class StartField : public Field{
 public:
     void onPass(IVisitor &player){
-        player.increaseMoney(400);
+        player.increaseMoney(Cash{400});
     }
 };
 
 class DepositField : public Field
 {
-    uint _cash = 0;
-    uint _amount = 100;
+    Cash storedCash{0};
+    const Cash amount{100};
 public:
         void onStep(IVisitor &player){
-            player.increaseMoney(_cash);
+            player.increaseMoney(storedCash);
+            storedCash = Cash(0);
     }
         void onPass(IVisitor &player){
-            player.decreaseMoney(Cash(_amount));
-        _cash += _amount;
+            player.decreaseMoney(amount);
+            storedCash += amount;
     }
 };
 
@@ -237,7 +230,7 @@ public:
             else if(_owner->name() != player.name())
             {
                 player.decreaseMoney(Cash(rent));
-                _owner->increaseMoney(rent);
+                _owner->increaseMoney(Cash(rent));
             }
         }
         void releaseOwnership() override
