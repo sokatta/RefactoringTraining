@@ -5,6 +5,8 @@
 #include <memory>
 #include <vector>
 
+struct IVisitor;
+
 class PunishField : public IField
 {
 
@@ -48,24 +50,42 @@ public:
     }
 };
 
-
-class MansionField : public IField, OwnershipAct
+class MansionField : public IField, private OwnershipAct
 {
     IVisitor* _owner = nullptr;
     Price price{Cash{500}};
     uint rent = 300;
-public:
-    void onStep(IVisitor &player){
-        if(!_owner && player.wantsToBuy(price))
+
+    bool fieldAvailableToBuy(){ return _owner; }
+    bool visitingPlayerIsOwner(IVisitor &player) {
+        if(!_owner)
+            return _owner;
+        return _owner->name() == player.name();
+        }
+
+    void getRentFrom(IVisitor &player)
+    {
+        player.decreaseMoney(Cash{rent});
+        _owner->increaseMoney(Cash{rent});
+    }
+    void makeTransactionBy(IVisitor &player)
+    {
+        if (player.wantsToBuy(price))
         {
             *_owner =  player;
             player.decreaseMoney(price.get());
             player.assignAct(this);
         }
-        else if(_owner->name() != player.name())
+    }
+public:
+    void onStep(IVisitor &player){
+        if(fieldAvailableToBuy())
         {
-            player.decreaseMoney(Cash(rent));
-            _owner->increaseMoney(Cash(rent));
+            makeTransactionBy(player);
+        }
+        if(not visitingPlayerIsOwner(player))
+        {
+           getRentFrom(player);
         }
     }
     void releaseOwnership() override
