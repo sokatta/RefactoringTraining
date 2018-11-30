@@ -14,7 +14,7 @@ public:
         _board.reserve(boardSize);
 
         for(int i{0}; i<_boardSize; i++){
-            _board.push_back(std::make_unique<MansionField>());
+            _board.push_back(std::make_unique<IField>());
         }
         _board[0] = std::make_unique<StartField>();
         _board[10] = std::make_unique<PunishField>();
