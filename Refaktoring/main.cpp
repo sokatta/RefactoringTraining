@@ -12,7 +12,7 @@ using namespace std;
 
 class Game
 {
-    std::vector<std::shared_ptr<Player>> _players;
+    std::vector<std::shared_ptr<IPin>> _players;
     Board board;
     int rounds = 0;
 
@@ -26,7 +26,7 @@ class Game
     }
     bool roundsBelowLimit()
     {
-        if(rounds < 5)
+        if(rounds < 10)
             return true;
         return false;
     }
@@ -65,7 +65,7 @@ public:
         {
             std::cout << "tura gracza \n";
             pl->printName();
-            pl->moveAction();
+            pl->movePin();
         }
         removeBankruptPlayers();
     }

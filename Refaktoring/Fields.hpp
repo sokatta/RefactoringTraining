@@ -4,6 +4,7 @@
 #include "IownershipAct.hpp"
 #include <memory>
 #include <vector>
+#include <iostream>
 struct IVisitor;
 
 
@@ -90,7 +91,7 @@ class MansionField : public Field, private OwnershipAct
 {
     IVisitor* _owner = nullptr;
     Price price{Cash{500}};
-    uint rent = 300;
+    Cash rent{300};
 
     bool fieldAvailableToBuy(){ return _owner == nullptr; }
     bool visitingPlayerIsOwner(IVisitor &player)
@@ -102,8 +103,8 @@ class MansionField : public Field, private OwnershipAct
 
     void getRentFrom(IVisitor &player)
     {
-        player.decreaseMoney(Cash{rent});
-        _owner->increaseMoney(Cash{rent});
+        player.decreaseMoney(rent);
+        _owner->increaseMoney(rent);
     }
     void makeTransactionBy(IVisitor &player)
     {

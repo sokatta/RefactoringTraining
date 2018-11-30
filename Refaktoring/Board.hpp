@@ -15,7 +15,8 @@ public:
 
         for(int i{0}; i<_boardSize; i++){
             _board.push_back(std::make_unique<MansionField>());
-        }       _board[0] = std::make_unique<StartField>();
+        }
+        _board[0] = std::make_unique<StartField>();
         
         _board[5] = std::make_unique<RandomField>(std::initializer_list<Field>{
                 PunishField(),
@@ -26,7 +27,7 @@ public:
         _board[20] = std::make_unique<PrisonField>();
         _board[25] = std::make_unique<BlackHoleField>(std::make_unique<PrisonField>());
         _board[30] = std::make_unique<RewardField>();
-        _board[35] = std::make_unique<MansionField>();        
+        _board[35] = std::make_unique<Field>();
     }
 
     FieldIterator getIterator()
