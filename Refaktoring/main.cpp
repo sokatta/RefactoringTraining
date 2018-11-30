@@ -10,6 +10,22 @@
 
 using namespace std;
 
+using Cash = NamedType<int, struct CashParameter>;
+using Price = NamedType<Cash, struct PriceParameter>;
+
+std::ostream &operator<<(std::ostream& os, const Cash cash){
+    return os<<cash.get();
+}
+
+std::ostream &operator<<(std::ostream& os, const Price cash){
+    return os<<cash.get().get();
+}
+
+bool operator <= (const Cash cash, const Price price){
+    if(cash.get() < price.get().get())
+        return true;
+    return false;
+}
 struct OwnershipAct
 {
     virtual void releaseOwnership()  = 0;
@@ -18,11 +34,9 @@ struct OwnershipAct
 
 class Player;
 
-using Price = NamedType<int, struct PriceParameter>;
-using Cash = NamedType<int, struct CashParameter>;
 struct IVisitor
 {
-    virtual void decreaseMoney(int val) = 0;
+    virtual void decreaseMoney(Cash val) = 0;
     virtual void increaseMoney(int val) = 0;
     virtual bool wantsToBuy(Price price) = 0;
     virtual void assignAct(OwnershipAct* act) = 0;
@@ -68,7 +82,7 @@ struct GreedyBuy : DecisionMaker
 {
     bool buyMansion(Cash cash, Price price)
     {
-        if (cash.get() < price.get())
+        if (cash <= price)
             return false;
         return true;
     }
@@ -77,7 +91,7 @@ struct RandomBuy : DecisionMaker
 {
     bool buyMansion(Cash cash, Price price)
     {
-        if(cash.get() < price.get())
+        if(cash <= price)
             return false;
         return std::rand()%2;
     }
@@ -88,7 +102,7 @@ struct HumanBuy : DecisionMaker
     bool buyMansion(Cash cash, Price price)
     {
         string decision;
-        std::cout << "Masz " << cash.get() << "gotowki, czy chcesz kupic posiadlosc za " << price.get() << "? t/n";
+        std::cout << "Masz " << cash << "gotowki, czy chcesz kupic posiadlosc za " << price << "? t/n";
         std::cin >> decision;
         if(decision == "t") 
             return true;
@@ -140,9 +154,9 @@ public:
         return buyer->buyMansion(_cash, price);
     }
 
-    void decreaseMoney(int val) override
+    void decreaseMoney(Cash val) override
     {
-        _cash.get() -= val;
+        _cash.get() -= val.get();
     }
     void increaseMoney(int val) override
     {
@@ -169,7 +183,7 @@ class PunishField : public Field
 
 public:
     void onStep(IVisitor &player){
-        player.decreaseMoney(100);
+        player.decreaseMoney(Cash(100));
     }
 
 };
@@ -201,7 +215,7 @@ public:
             player.increaseMoney(_cash);
     }
         void onPass(IVisitor &player){
-            player.decreaseMoney(_amount);
+            player.decreaseMoney(Cash(_amount));
         _cash += _amount;
     }
 };
@@ -210,7 +224,7 @@ public:
 class MansionField : public Field, OwnershipAct
 {
     IVisitor* _owner = nullptr;
-    Price price{500};
+    Price price{Cash{500}};
     uint rent = 300;
 public:
         void onStep(IVisitor &player){
@@ -222,7 +236,7 @@ public:
             }
             else if(_owner->name() != player.name())
             {
-                player.decreaseMoney(rent);
+                player.decreaseMoney(Cash(rent));
                 _owner->increaseMoney(rent);
             }
         }
