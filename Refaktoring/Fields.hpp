@@ -4,7 +4,6 @@
 #include "IownershipAct.hpp"
 #include <memory>
 #include <vector>
-
 struct IVisitor;
 
 class PunishField : public IField
@@ -84,7 +83,7 @@ public:
         {
             makeTransactionBy(player);
         }
-        if(not visitingPlayerIsOwner(player))
+        else if(not visitingPlayerIsOwner(player))
         {
            getRentFrom(player);
         }
